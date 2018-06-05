@@ -1,0 +1,34 @@
+VAGRANT
+
+vagrant init boxName http:\\url.vagrant.com\boxName
+
+vagrant up boxName
+
+vagrant box add
+vagrant box list
+vagrant box remove
+
+vagrant status
+vagrant suspend
+
+$ vagrant ssh
+SSH into virtual machine.
+
+$ vagrant up
+Start virtual machine.
+
+$ vagrant share
+Share your virtual machine to the world via a temporary and unique url.
+
+$ vagrant halt
+Halt virtual machine.
+
+$ vagrant destroy
+Destroy your virtual machine. The source code and the content of the data directory will remain unchanged. Only the VirtualBox machine instance will be destroyed. You can build your machine again with the 'vagrant up' command. This command is useful if you want to save disk space.
+Warning: this command will destroy your site databases. Backup them using drush sql-dump > db.sql for each site.
+
+$ vagrant provision
+Reconfigure the virtual machine after a source code change.
+
+$ vagrant reload
+Reload the virtual machine. Useful when you need to change network or synced folder settings.

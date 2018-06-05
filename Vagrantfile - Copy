@@ -1,0 +1,82 @@
+###################################################################
+# Five node vagrant setup with static IPs for Puppet development. # 
+###################################################################
+
+#############
+# Variables #
+#############
+domain   = 'example.com'
+
+nodes = [
+  { :hostname => 'node1', :ip => '10.10.10.11', :box => 'puppetlabs/centos-7.2-64-puppet' },
+  { :hostname => 'node2', :ip => '10.10.10.12', :box => 'puppetlabs/centos-7.2-64-puppet' },
+  { :hostname => 'node3', :ip => '10.10.10.13', :box => 'puppetlabs/centos-7.2-64-puppet' },
+  { :hostname => 'node4', :ip => '10.10.10.14', :box => 'puppetlabs/centos-7.2-64-puppet' },
+  { :hostname => 'db1', :ip => '10.10.10.21', :box => 'puppetlabs/centos-7.2-64-puppet' },
+]
+
+####################
+# Puppet Master - VM configuration #
+####################
+Vagrant.configure("2") do |config|
+  nodes.each do |node|
+    config.vm.define node[:hostname] do |nodeconfig|
+      nodeconfig.ssh.insert_key = false
+      nodeconfig.vm.box = "puppetlabs/centos-7.2-64-puppet"
+      nodeconfig.vm.hostname = node[:hostname] + ".vag.box"
+      nodeconfig.vm.network :private_network, ip: node[:ip]
+
+      memory = node[:ram] ? node[:ram] : 768;
+      nodeconfig.vm.provider :virtualbox do |vb|
+          vb.customize [
+          "modifyvm", :id,
+          "--cpuexecutioncap", "70",
+          "--memory", memory.to_s,
+        ]
+
+bootstrap_script = <<-EOF
+    echo 10.10.10.15 master master.vag.box >> /etc/hosts 
+    echo 10.10.10.11 node1 node1.vag.box >> /etc/hosts
+		echo 10.10.10.12 node2 node2.vag.box >> /etc/hosts
+		echo 10.10.10.13 node3 node3.vag.box >> /etc/hosts
+		echo 10.10.10.14 node4 node4.vag.box >> /etc/hosts
+		sudo iptables -I INPUT -p all -j ACCEPT
+		sudo nmcli connection reload
+		sudo systemctl restart network.service
+		sudo systemctl disable firewalld
+                   EOF
+            config.vm.provision :shell, :inline => bootstrap_script
+
+
+      end
+    end
+
+
+  ############################################################################################
+  # Workaround for Vagrant bug still present in Vagrant 1.8.5                                #
+  # (http://stackoverflow.com/questions/32518591/centos7-with-private-network-lost-fixed-ip) #
+  ############################################################################################
+  
+
+  
+  ######################
+  # Puppet provisioner #
+  ###################### 
+  config.vm.provision :puppet do |puppet|
+    # General config
+    puppet.environment_path = "environments"
+    puppet.environment = "production"
+    puppet.module_path = "environments/production/modules"
+
+    # Hiera config
+    puppet.hiera_config_path = "hiera/hiera.yaml"
+    puppet.working_directory = "/tmp/vagrant-puppet"
+
+    # Custom facts
+    puppet.facter = {
+      "customfact" => "TestCustomFact"
+    }
+  end
+  
+end
+end
