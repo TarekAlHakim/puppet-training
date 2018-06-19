@@ -15,7 +15,7 @@ win_servers = {
 }
 
 centos_servers = {
-    :gitlab => {:hostname =>  "gitlab", :ip => '10.10.10.14'},
+    :gitlab => {:hostname =>  "gitlab", :ip => '192.168.0.14'},
     :mom =>    {:hostname =>     "mom", :ip => '10.10.10.15'},
     :web0 =>   {:hostname =>    "web0", :ip => '10.10.10.16'},
     :web1 =>   {:hostname =>    "web1", :ip => '10.10.10.17'},
@@ -25,7 +25,7 @@ centos_servers = {
 }
 
 Vagrant.configure("2") do |global_config|
-    global_config.vm.network :private_network, :ip => "10.10.10.1", :adapter => 2, :auto_config => false
+    #global_config.vm.network :private_network, :ip => "192.168.0.1", :adapter => 2, :auto_config => true
     
     win_servers.each_pair do |name, options|
       global_config.vm.define name do |config|
@@ -41,13 +41,14 @@ Vagrant.configure("2") do |global_config|
         config.vm.hostname = hostname + 'domain' 
         config.vm.network :forwarded_port, guest: 3389, host: rdp_port
         config.vm.network :forwarded_port, guest: 5985, host: winrm_port
-        config.vm.network :private_network, ip: win_servers[:ip]
-        config.vm.synced_folder "./repo", "C:\\users\\Tarek\\Documents\\vagrant\\"
+        config.vm.network :private_network, ip: options[:ip]
+        #config.vm.synced_folder "./repo", "C:\\users\\Tarek\\Documents\\vagrant\\"
         config.vm.provider :virtualbox do |v|
           v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
           v.customize ["modifyvm", :id, "--memory", 1024]
           v.customize ["modifyvm", :id, "--name", hostname]
-          v.customize ["modifyvm", :id, "--cpuexecutioncap", 40]
+          v.customize ["modifyvm", :id, "--cpus", 2]
+          v.customize ["modifyvm", :id, "--cpuexecutioncap", 75]
         end
       end
     end
