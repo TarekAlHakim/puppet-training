@@ -25,7 +25,7 @@ centos_servers = {
 }
 
 Vagrant.configure("2") do |global_config|
-    #global_config.vm.network :private_network, :ip => "192.168.0.1", :adapter => 2, :auto_config => true
+    #global_config.vm.network :private_network, :adapter => 2, :auto_config => true
     
     win_servers.each_pair do |name, options|
       global_config.vm.define name do |config|
@@ -35,10 +35,7 @@ Vagrant.configure("2") do |global_config|
         domain = domain_name
         config.vm.guest = :windows
         config.vm.box = win2012_box
-        #config.vm.box_url = win2012_url
-        #config.winrm.username = "vagrant"
-        #config.winrm.password = "vagrant"
-        config.vm.hostname = hostname + 'domain' 
+        config.vm.hostname = hostname + domain 
         config.vm.network :forwarded_port, guest: 3389, host: rdp_port
         config.vm.network :forwarded_port, guest: 5985, host: winrm_port
         config.vm.network :private_network, ip: options[:ip]
@@ -60,7 +57,7 @@ Vagrant.configure("2") do |global_config|
       config.vm.network :private_network, ip: win_servers[:ip]
       config.vm.box_url = "geerlingguy/centos7"
       config.vm.box = "centos7"
-      config.vm.synced_folder "./", "/var/www", owner: "www-data", group: "www-data" 
+      # config.vm.synced_folder "./", "/var/www", owner: "www-data", group: "www-data" 
       # config.vm.provider :virtualbox do |v|
       #   v.customize ["modifyvm", :id, "--natdnshostresolver1", "off"]
       #   v.customize ["modifyvm", :id, "--cpuexecutioncap", 40]
